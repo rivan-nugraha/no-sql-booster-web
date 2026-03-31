@@ -43,7 +43,7 @@ async function tryRefreshToken() {
   }
   const headers = await buildHeaders(state.access_token);
   const response = await ky
-    .post(`${BASE_URL}/v1/auth/refresh`, {
+    .post(`${BASE_URL}/auth/refresh`, {
       json: { user_id: state.user_id, refresh_token: state.refresh_token },
       headers,
     })

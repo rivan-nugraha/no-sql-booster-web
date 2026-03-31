@@ -7,5 +7,5 @@ export async function fetchUsers(params?: { skip?: number; limit?: number }) {
   query.set('skip', String(params?.skip ?? 0));
   query.set('limit', String(params?.limit ?? 50));
 
-  return httpRequest<ApiResponse<UserItem[]>>(`/v1/users?${query.toString()}`);
+  return httpRequest<ApiResponse<Array<UserItem>>>(`/v1/users?${query.toString()}`);
 }
