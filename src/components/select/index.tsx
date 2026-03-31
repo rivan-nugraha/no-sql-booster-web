@@ -1,10 +1,12 @@
+/* eslint-disable no-shadow */
+/* eslint-disable @typescript-eslint/naming-convention */
 import { Fragment } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { Check, ChevronDown } from "lucide-react";
-import { Control, FieldValues, Path } from "react-hook-form";
 import clsx from "clsx";
-import { FormStateRedux } from "../../redux/form/interface";
 import { FormControl, FormField, FormItem, FormLabel } from "../form";
+import type { Control, FieldValues, Path } from "react-hook-form";
+import type { FormStateRedux } from "../../redux/form/interface";
 
 interface Option {
   value: any;
@@ -15,7 +17,7 @@ interface TypedSelectProps<FormValues extends FieldValues> {
   name: Path<FormValues>;
   label?: string;
   control: Control<FormValues>;
-  options: Option[];
+  options: Array<Option>;
   placeholder?: string;
   readOnly?: boolean;
   disableClearable?: boolean;

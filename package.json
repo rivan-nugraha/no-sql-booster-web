@@ -13,7 +13,9 @@
     "check": "prettier --write . && eslint --fix"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
     "@hookform/resolvers": "^5.0.1",
+    "@monaco-editor/react": "^4.7.0",
     "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-router": "^1.114.3",
@@ -21,6 +23,7 @@
     "ky": "^1.7.2",
     "lucide-react": "^0.511.0",
     "react": "^18.2.0",
+    "react-apexcharts": "^2.1.0",
     "react-datepicker": "^8.3.0",
     "react-dom": "^18.2.0",
     "react-helmet-async": "^2.0.5",
@@ -29,6 +32,7 @@
     "react-redux": "^9.2.0",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
+    "sweetalert2": "^11.26.24",
     "tailwindcss": "^4.0.6",
     "yup": "^1.6.1"
   },

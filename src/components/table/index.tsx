@@ -1,16 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+ 
 import {
+    Database,
+    FileCodeIcon,
     Pencil,
     Plus,
     Printer,
     Trash2,
-    Database,
-    FileCodeIcon,
   } from "lucide-react";
+  import { useState } from "react";
   import { useAppSelector } from "../../redux/redux-hook";
   import { selectUtility } from "../../redux/utility";
-  import { useState } from "react";
-  import TableComponentProps from "./interface";
+  import type TableComponentProps from "./interface";
   
   const TableComponent = <T extends Record<string, any>>({
     columns,

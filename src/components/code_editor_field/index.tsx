@@ -1,6 +1,6 @@
 import Editor from "@monaco-editor/react";
-import { FormField } from "../form";
 import { useEffect } from "react";
+import { FormField } from "../form";
 
 interface CodeEditorFieldProps{
   control: any;
@@ -65,7 +65,7 @@ const InternalCodeEditor = ({
           }}
           beforeMount={(monacoInstance) => {
             monacoInstance.languages.registerCompletionItemProvider(language, {
-              provideCompletionItems: (model, position) => {
+              provideCompletionItems: (model: { getWordUntilPosition: (arg0: any) => any; }, position: { lineNumber: any; }) => {
                 const word = model.getWordUntilPosition(position);
                 const range = {
                   startLineNumber: position.lineNumber,

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export const Card = ({icon, title, count}: {icon: ReactNode, title: string, count: number}) => {
     return (

@@ -1,10 +1,11 @@
-import { FC, Fragment } from "react";
+import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { X } from "lucide-react";
 import { closeModal, selectUtility } from "../../redux/utility";
 import { resetForm } from "../../redux/form";
 import { useAppDispatch, useAppSelector } from "../../redux/redux-hook";
-import { ModalGlobalInterFace } from "./interface";
+import type { FC} from "react";
+import type { ModalGlobalInterFace } from "./interface";
 
 const ModalGlobal: FC<ModalGlobalInterFace> = ({ children, title, namaForm, width = "600px" }) => {
   const utility = useAppSelector(selectUtility);
