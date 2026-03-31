@@ -13,7 +13,8 @@ import { store } from './redux/redux-store.ts'
 import { ThemeProvider } from './context/ThemeContext.tsx'
 import { AppWrapper } from './components/common/PageMeta.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
-import { router } from './routes/Routes.tsx'
+import { ToastProvider } from './context/ToastContext.tsx'
+import { router, getReduxAuthContext } from './routes/Routes.tsx'
 
 
 const persist = persistStore(store);
@@ -24,6 +25,14 @@ declare module '@tanstack/react-router' {
   }
 }
 
+// Sync router context with redux auth state
+router.update({ context: { auth: getReduxAuthContext() } });
+store.subscribe(() =>
+  router.update({
+    context: { auth: getReduxAuthContext() },
+  }),
+);
+
 const rootElement = document.getElementById('app')
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
@@ -32,9 +41,11 @@ if (rootElement && !rootElement.innerHTML) {
       <PersistGate loading={null} persistor={persist}>
         <ThemeProvider>
           <AppWrapper>
-            <AuthProvider>
-              <RouterProvider router={router} />
-            </AuthProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <RouterProvider router={router} />
+              </AuthProvider>
+            </ToastProvider>
           </AppWrapper>
         </ThemeProvider>
       </PersistGate>

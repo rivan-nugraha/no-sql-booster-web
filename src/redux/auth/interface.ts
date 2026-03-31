@@ -1,6 +1,7 @@
 export interface AuthState {
-    username: string,
-    division: string,
-    name: string,
-    token: string,
+  user_id: string;
+  name: string;
+  level: string;
+  access_token: string;
+  refresh_token: string;
 }

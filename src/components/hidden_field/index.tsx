@@ -6,7 +6,7 @@ export interface HiddenFieldProps extends React.InputHTMLAttributes<HTMLInputEle
 }
 
 const HiddenField = React.forwardRef<HTMLInputElement, HiddenFieldProps>(
-  (props, ref) => {
+  ({ positionIcon, className, ...rest }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false);
 
     return (
@@ -15,10 +15,13 @@ const HiddenField = React.forwardRef<HTMLInputElement, HiddenFieldProps>(
           type={showPassword ? 'text' : 'password'}
           ref={ref}
           className={`
-            w-full rounded-md border px-3 py-2 text-sm shadow-sm transition bg-white border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200
-            ${props.positionIcon === 'left' ? 'pl-10' : ''}
+            w-full rounded-md border px-3 py-2 text-sm shadow-sm transition
+            bg-[var(--input-bg)] text-[var(--input-text)] border-[var(--input-border)]
+            focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20
+            ${positionIcon === 'left' ? 'pl-10' : ''}
+            ${className ?? ''}
           `}
-          {...props}
+          {...rest}
         />
         <button
           type="button"
@@ -29,7 +32,7 @@ const HiddenField = React.forwardRef<HTMLInputElement, HiddenFieldProps>(
         </button>
       </>
     );
-  }
+  },
 );
 
 HiddenField.displayName = 'HiddenField';

@@ -1,15 +1,17 @@
 import { useTheme } from "../../context/ThemeContext";
 
 export const ThemeToggleButton: React.FC = () => {
-  const { toggleTheme } = useTheme();
+  const { toggleTheme, theme, resolvedTheme } = useTheme();
 
   return (
     <button
       onClick={toggleTheme}
-      className="relative flex items-center justify-center text-gray-500 transition-colors bg-white border border-gray-200 rounded-full hover:text-dark-900 h-11 w-11 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+      className="relative inline-flex items-center justify-center gap-2 text-gray-700 transition-colors bg-white border border-gray-200 rounded-full px-3 py-2 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
     >
       <svg
-        className="hidden dark:block"
+        className={`hidden dark:block ${
+          resolvedTheme === "dark" ? "text-yellow-300" : ""
+        }`}
         width="20"
         height="20"
         viewBox="0 0 20 20"
@@ -24,7 +26,9 @@ export const ThemeToggleButton: React.FC = () => {
         />
       </svg>
       <svg
-        className="dark:hidden"
+        className={`dark:hidden ${
+          resolvedTheme === "light" ? "text-amber-500" : ""
+        }`}
         width="20"
         height="20"
         viewBox="0 0 20 20"
@@ -36,6 +40,11 @@ export const ThemeToggleButton: React.FC = () => {
           fill="currentColor"
         />
       </svg>
+      <span className="text-xs font-medium hidden xl:inline">
+        {theme === "system"
+          ? `System (${resolvedTheme})`
+          : theme.charAt(0).toUpperCase() + theme.slice(1)}
+      </span>
     </button>
   );
 };

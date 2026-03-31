@@ -67,7 +67,7 @@ const Field = <FormValues extends Record<string, any>>({
                     >
                         {
                             type !== "checkbox" && type !== "hidden" && (
-                                <FormLabel>
+                                <FormLabel className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                                     {label}
                                 </FormLabel>
                             )
@@ -129,7 +129,7 @@ const Field = <FormValues extends Record<string, any>>({
                                     <div className={`relative flex items-center`}>
                                         {/* Ikon kiri */}
                                         {positionIcon === 'left' && icon && (
-                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                                                 {icon}
                                             </div>
                                         )}
@@ -146,7 +146,9 @@ const Field = <FormValues extends Record<string, any>>({
                                             maxLength={maxLength}
                                             className={`
                                                 w-full rounded-md border px-3 py-2 text-sm shadow-sm transition 
-                                                ${readOnly ? 'bg-gray-100 border-gray-300 cursor-not-allowed' : 'bg-white border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200'}
+                                                bg-[var(--input-bg)] text-[var(--input-text)] border-[var(--input-border)]
+                                                focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20
+                                                ${readOnly ? 'opacity-70 cursor-not-allowed' : ''}
                                                 ${positionIcon === 'left' ? 'pl-10' : ''}
                                                 ${endAdorment ? 'pr-10' : ''}
                                             `}

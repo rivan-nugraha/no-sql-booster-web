@@ -4,32 +4,42 @@ import type { AuthState } from "./interface";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: AuthState = {
-    username: '',
-    division: '',
-    name: '',
-    token: '',
-}
+  user_id: '',
+  name: '',
+  level: '',
+  access_token: '',
+  refresh_token: '',
+};
 
 export const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {
         login: (state, action: PayloadAction<AuthState>) => {
-            state.username = action.payload.username;
-            state.division = action.payload.division;
+            state.user_id = action.payload.user_id;
             state.name = action.payload.name;
-            state.token = action.payload.token;
+            state.level = action.payload.level;
+            state.access_token = action.payload.access_token;
+            state.refresh_token = action.payload.refresh_token;
+        },
+        setTokens: (
+            state,
+            action: PayloadAction<Pick<AuthState, 'access_token' | 'refresh_token'>>,
+        ) => {
+            state.access_token = action.payload.access_token;
+            state.refresh_token = action.payload.refresh_token;
         },
         logout: (state) => {
-            state.username = '';
-            state.division = '';
+            state.user_id = '';
             state.name = '';
-            state.token = '';
+            state.level = '';
+            state.access_token = '';
+            state.refresh_token = '';
         },
     },
 });
 
-export const { login, logout } = authSlice.actions;
+export const { login, logout, setTokens } = authSlice.actions;
 
 export const selectAuth = (state: RootState) => state.auth;
 export default authSlice.reducer;

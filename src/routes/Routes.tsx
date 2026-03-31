@@ -17,10 +17,10 @@ export const router = createRouter({
 export const getReduxAuthContext = () => {
   const state = store.getState().auth
   return {
-    isAuthenticated: !!state.token,
-    token: state.token,
-    username: state.username,
+    isAuthenticated: !!state.access_token,
+    token: state.access_token,
+    user_id: state.user_id,
     name: state.name,
-    division: state.division,
+    level: state.level,
   }
 }

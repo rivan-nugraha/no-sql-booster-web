@@ -1,4 +1,4 @@
-import { Lock, User } from "lucide-react";
+import { Lock, User, Moon, Sun } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import Field from "../../components/field";
@@ -8,12 +8,14 @@ import { selectAuth } from "../../redux/auth";
 import Button from "../../components/button";
 import LoginRedux from "./redux";
 import { LoginFormValidate } from "./validate";
+import { useTheme } from "../../context/ThemeContext";
 
 const Login = () => {
   const proses = LoginRedux();
   const dispatch = useAppDispatch();
-  const auth = useAppSelector(selectAuth).token;
+  const auth = useAppSelector(selectAuth).access_token;
   const navigation = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (auth) {
@@ -27,7 +29,14 @@ const Login = () => {
   }
   
   return (
-    <div className="bg-transparent flex justify-center items-center h-screen">
+    <div className="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex justify-center items-center h-screen transition-colors">
+      <button
+        onClick={toggleTheme}
+        className="absolute top-4 right-4 inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 px-3 py-2 text-sm shadow-sm backdrop-blur hover:shadow"
+      >
+        {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+        {theme === "system" ? "System" : theme === "dark" ? "Dark" : "Light"}
+      </button>
       <div className="w-1/2 h-screen hidden lg:block">
         <img src="https://img.freepik.com/fotos-premium/imagen-fondo_910766-187.jpg?w=826" alt="Placeholder Image" className="object-cover w-full h-full" />
       </div>

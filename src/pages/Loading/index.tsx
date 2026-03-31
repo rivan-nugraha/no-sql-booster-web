@@ -8,7 +8,7 @@ const LoadingPage = () => {
   if (!isLoading) return null
 
   return (
-    <div className="loading-base z-999999999999 flex justify-center items-center">
+    <div className="loading-base z-[90] flex justify-center items-center">
         <div className="loading-background"></div>
         <Hourglass
           height="40"

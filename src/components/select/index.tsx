@@ -57,7 +57,7 @@ const Select = <FormValues extends Record<string, any>>({
                     }}
                     disabled={readOnly}
                   >
-                    <div className="relative z-500000">
+                    <div className="relative z-[70]">
                       <Listbox.Button
                         className={clsx(
                           "w-full rounded-md border px-3 py-2 text-left shadow-sm sm:text-sm",
@@ -80,7 +80,7 @@ const Select = <FormValues extends Record<string, any>>({
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                       >
-                        <Listbox.Options className="fixed z-[999999] mt-1 max-h-60 w-[90%] md:w-[550px] overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5">
+                        <Listbox.Options className="fixed z-[70] mt-1 max-h-60 w-[90%] md:w-[550px] overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5">
                           {options.map((option, idx) => (
                             <Listbox.Option
                               key={idx}

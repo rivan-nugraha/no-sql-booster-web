@@ -24,7 +24,7 @@ export default function UserDropdown() {
       >
         <span className="overflow-hidden rounded-full h-11 w-11 mr-2">
           <div className="bg-black text-white h-full items-center align-middle flex justify-center">
-            <h1>{auth.name.slice(0, 1)}</h1>
+            <h1>{auth.name ? auth.name.slice(0, 1) : "U"}</h1>
           </div>
         </span>
 
@@ -59,7 +59,7 @@ export default function UserDropdown() {
             {auth.name}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            {auth.username}
+            {auth.user_id}
           </span>
         </div>
         <a

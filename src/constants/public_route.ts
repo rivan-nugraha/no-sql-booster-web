@@ -1,1 +1,1 @@
-export const PublicRouteConstant = ['/login', '/setup'];
+export const PublicRouteConstant = ['/', '/login', '/setup'];

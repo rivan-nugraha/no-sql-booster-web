@@ -13,7 +13,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: FC<{ children: ReactNode }> = ({children}) => {
-    const token = useAppSelector(selectAuth).token;
+    const accessToken = useAppSelector(selectAuth).access_token;
     const dispatch = useAppDispatch();
 
     const loginContext = (user: AuthState) => {
@@ -24,7 +24,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({children}) => {
         dispatch(logout());
     };
 
-    const isAuthenticated = !!token;
+    const isAuthenticated = !!accessToken;
 
     return (
         <AuthContext.Provider value={{ isAuthenticated, login: loginContext, logout: logoutContext }}>

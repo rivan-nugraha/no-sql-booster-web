@@ -3,9 +3,11 @@ import type { RootState } from "../redux-store";
 import type { FormStateRedux } from "./interface";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { initialFormLogin } from "@/pages/Login/dto";
+import { initialFormSetup } from "@/pages/Setup/dto";
 
 export const initialState: FormStateRedux = {
     LoginForm: initialFormLogin,
+    SetupForm: initialFormSetup,
 }
 
 export const formSlice = createSlice({

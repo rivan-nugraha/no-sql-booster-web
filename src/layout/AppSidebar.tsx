@@ -1,379 +1,324 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronDown, DatabaseIcon, DotIcon, FileCode, GridIcon, HistoryIcon } from "lucide-react";
-import { Link, useLocation } from "@tanstack/react-router";
+ 
+import { useEffect, useState } from "react";
+import {
+  Activity,
+  ChevronDown,
+  ChevronRight,
+  Cloud,
+  Cpu,
+  Database,
+  Folder,
+  GitBranch,
+  Globe,
+  HardDrive,
+  Layers,
+  Loader2,
+  Network,
+  Plug,
+  Plus,
+  Server,
+} from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
-import { useAppSelector } from "../redux/redux-hook";
-import { selectAuth } from "../redux/auth";
+import { useToast } from "../context/ToastContext";
+import { useDatabase } from "../context/DatabaseContext";
+import { createDatabase, listDatabaseCatalog, listDatabases, testDatabaseConnection } from "../client";
+import type { CatalogItem, CreateDatabasePayload, DatabaseItem } from "../client/model/database_model";
 
-type NavItem = {
-  name: string;
-  icon: React.ReactNode;
-  path?: string;
-  subItems?: Array<{ name: string; path: string; pro?: boolean; new?: boolean }>;
+
+
+const iconOptions = [
+  { key: "database", label: "Database", icon: Database },
+  { key: "server", label: "Server", icon: Server },
+  { key: "cloud", label: "Cloud", icon: Cloud },
+  { key: "globe", label: "Globe", icon: Globe },
+  { key: "plug", label: "Plug", icon: Plug },
+  { key: "drive", label: "Drive", icon: HardDrive },
+  { key: "network", label: "Network", icon: Network },
+  { key: "layers", label: "Layers", icon: Layers },
+  { key: "git", label: "Git Branch", icon: GitBranch },
+  { key: "cpu", label: "CPU", icon: Cpu },
+  { key: "activity", label: "Activity", icon: Activity },
+  { key: "folder", label: "Folder", icon: Folder },
+];
+
+const iconByKey: Record<string, React.ComponentType<{ size?: number }>> =
+  iconOptions.reduce((acc, it) => {
+    acc[it.key] = it.icon;
+    return acc;
+  }, {} as Record<string, React.ComponentType<{ size?: number }>>);
+
+const renderIcon = (key: string | undefined, size = 16) => {
+  const Icon = key ? (iconByKey[key] ?? Database) : Database;
+  return <Icon size={size} />;
 };
 
-const navItems: Array<NavItem> = [
-  {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    path: '/'
-  },
-  {
-    icon: <DatabaseIcon />,
-    name: "Master Data",
-    subItems: [
-      {
-        name: "User",
-        path: '/user',
-        pro: false,
-      },
-    ]
-  },
-];
-
-const devOpsItem: Array<NavItem> = [
-  {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    path: '/'
-  },
-  {
-    icon: <DatabaseIcon />,
-    name: "Master Data",
-    subItems: [
-      {
-        name: "Program",
-        path: '/programs',
-        pro: false,
-      },
-    ]
-  },
-];
-
-const createItems: Array<NavItem> = [
-  {
-    icon: <FileCode />,
-    name: "Scripts",
-    path: '/scripts'
-  },
-]
-
-const reportItems: Array<NavItem> = [
-  {
-    icon: <HistoryIcon />,
-    name: "Execution History",
-    path: '/history'
-  }
-]
-
-const othersItems: Array<NavItem> = [];
-
 const AppSidebar: React.FC = () => {
-  const auth = useAppSelector(selectAuth).division;
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
-  const location = useLocation();
+  const [active, setActive] = useState<string | null>(null);
+  const isCollapsed = !(isExpanded || isHovered || isMobileOpen);
+  const { showToast } = useToast();
+  const { selected, selectDatabase } = useDatabase();
+  const [showModal, setShowModal] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [connections, setConnections] = useState<DatabaseItem[]>([]);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [catalogs, setCatalogs] = useState<Record<string, CatalogItem[]>>({});
+  const [loadingCatalog, setLoadingCatalog] = useState<Record<string, boolean>>({});
+  const [form, setForm] = useState<CreateDatabasePayload>({
+    name: "",
+    uri: "",
+    description: "",
+    icon: "database",
+  });
 
-  const [openSubmenu, setOpenSubmenu] = useState<{
-    type: "main" | "others" | "created" | "report";
-    index: number;
-  } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
-    {}
-  );
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  // const isActive = (path: string) => location.pathname === path;
-  const isActive = useCallback(
-    (path: string) => location.pathname === path,
-    [location.pathname]
-  );
-
-  useEffect(() => {
-    let submenuMatched = false;
-    ["main", "others", "created"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
-      items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType as "main" | "others" | "created",
-                index,
-              });
-              submenuMatched = true;
-            }
-          });
-        }
-      });
-    });
-
-    if (!submenuMatched) {
-      setOpenSubmenu(null);
+  const fetchConnections = async () => {
+    try {
+      const res = await listDatabases();
+      setConnections(res.data ?? []);
+    } catch {
+      // silent fail — list stays empty
     }
-  }, [location, isActive]);
-
-  useEffect(() => {
-    if (openSubmenu !== null) {
-      const key = `${openSubmenu.type}-${openSubmenu.index}`;
-      if (subMenuRefs.current[key]) {
-        setSubMenuHeight((prevHeights) => ({
-          ...prevHeights,
-          [key]: subMenuRefs.current[key]?.scrollHeight || 0,
-        }));
-      }
-    }
-  }, [openSubmenu]);
-
-  const handleSubmenuToggle = (index: number, menuType: "main" | "others" | "created" | "report") => {
-    setOpenSubmenu((prevOpenSubmenu) => {
-      if (
-        prevOpenSubmenu &&
-        prevOpenSubmenu.type === menuType &&
-        prevOpenSubmenu.index === index
-      ) {
-        return null;
-      }
-      return { type: menuType, index };
-    });
   };
 
-  const renderMenuItems = (items: Array<NavItem>, menuType: "main" | "others" | "created" | "report") => (
-    <ul className="flex flex-col gap-4">
-      {items.map((nav, index) => (
-        <li key={nav.name}>
-          {nav.subItems ? (
-            <button
-              onClick={() => handleSubmenuToggle(index, menuType)}
-              className={`menu-item group ${
-                openSubmenu?.type === menuType && openSubmenu.index === index
-                  ? "menu-item-active"
-                  : "menu-item-inactive"
-              } cursor-pointer ${
-                !isExpanded && !isHovered
-                  ? "lg:justify-center"
-                  : "lg:justify-start"
-              }`}
-            >
-              <span
-                className={`menu-item-icon-size  ${
-                  openSubmenu?.type === menuType && openSubmenu.index === index
-                    ? "menu-item-icon-active"
-                    : "menu-item-icon-inactive"
-                }`}
-              >
-                {nav.icon}
-              </span>
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <span className="menu-item-text">{nav.name}</span>
-              )}
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDown
-                  className={`ml-auto w-5 h-5 transition-transform duration-200 ${
-                    openSubmenu?.type === menuType &&
-                    openSubmenu.index === index
-                      ? "rotate-180 text-brand-500"
-                      : ""
-                  }`}
-                />
-              )}
-            </button>
-          ) : (
-            nav.path && (
-              <Link
-                to={nav.path}
-                className={`menu-item group ${
-                  isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-                }`}
-              >
-                <span
-                  className={`menu-item-icon-size ${
-                    isActive(nav.path)
-                      ? "menu-item-icon-active"
-                      : "menu-item-icon-inactive"
-                  }`}
-                >
-                  {nav.icon}
-                </span>
-                {(isExpanded || isHovered || isMobileOpen) && (
-                  <span className="menu-item-text">{nav.name}</span>
-                )}
-              </Link>
-            )
-          )}
-          {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
-            <div
-              ref={(el) => {
-                subMenuRefs.current[`${menuType}-${index}`] = el;
-              }}
-              className="overflow-hidden transition-all duration-300"
-              style={{
-                height:
-                  openSubmenu?.type === menuType && openSubmenu.index === index
-                    ? `${subMenuHeight[`${menuType}-${index}`]}px`
-                    : "0px",
-              }}
-            >
-              <ul className="mt-2 space-y-1 ml-9">
-                {nav.subItems.map((subItem) => (
-                  <li key={subItem.name}>
-                    <Link
-                      to={subItem.path}
-                      className={`menu-dropdown-item ${
-                        isActive(subItem.path)
-                          ? "menu-dropdown-item-active"
-                          : "menu-dropdown-item-inactive"
-                      }`}
-                    >
-                      {subItem.name}
-                      <span className="flex items-center gap-1 ml-auto">
-                        {subItem.new && (
-                          <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
-                          >
-                            new
-                          </span>
-                        )}
-                        {subItem.pro && (
-                          <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
-                          >
-                            pro
-                          </span>
-                        )}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
+  const toggleExpand = async (conn: DatabaseItem) => {
+    const id = conn._id;
+    const isOpen = expanded[id];
+
+    if (isOpen) {
+      setExpanded((prev) => ({ ...prev, [id]: false }));
+      return;
+    }
+
+    setExpanded((prev) => ({ ...prev, [id]: true }));
+    setActive(id);
+
+    if (catalogs[id]) return;
+
+    setLoadingCatalog((prev) => ({ ...prev, [id]: true }));
+    try {
+      const res = await listDatabaseCatalog(id);
+      setCatalogs((prev) => ({ ...prev, [id]: res.data ?? [] }));
+    } catch {
+      showToast("Failed to load", `Could not list databases for ${conn.name}`, "error");
+      setExpanded((prev) => ({ ...prev, [id]: false }));
+    } finally {
+      setLoadingCatalog((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const formatSize = (bytes?: number) => {
+    if (!bytes) return "";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  };
+
+  useEffect(() => {
+    fetchConnections();
+  }, []);
+
+  useEffect(() => {
+    if (!isExpanded) setIsHovered(false);
+  }, [isExpanded, setIsHovered]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createDatabase(form);
+      showToast("Connection added", form.name, "success");
+      setShowModal(false);
+      setForm({ name: "", uri: "", description: "", icon: "database" });
+      fetchConnections();
+    } catch (err: any) {
+      showToast("Failed to add", err?.message || "Error", "error");
+    }
+  };
+
+  const handleTest = async () => {
+    try {
+      setTesting(true);
+      await testDatabaseConnection(form.uri);
+      showToast("Connection OK", form.uri, "success");
+    } catch (err: any) {
+      showToast("Connection failed", err?.message || "Error", "error");
+    } finally {
+      setTesting(false);
+    }
+  };
 
   return (
+    <>
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed mt-16 lg:mt-0 top-0 left-0 h-screen border-r border-[var(--border)] sidebar-bg text-[var(--text)] transition-all duration-300 ease-in-out z-[40] px-3 pt-6
         ${
           isExpanded || isMobileOpen
-            ? "w-[290px]"
+            ? "w-[280px]"
             : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
+            ? "w-[280px]"
+            : "w-[72px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-        }`}
-      >
-        <Link to="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <img
-                src="logo_text_right.png"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
-          ) : (
-            <img
-              src="logo.png"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
-          )}
-        </Link>
+      <div className={`text-xs font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-4 ${isCollapsed ? "text-center" : ""}`}>
+        {isCollapsed ? "" : "Connections"}
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="mb-6">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Menu"
-                ) : (
-                  <>
-                    <DotIcon />
-                    <DotIcon />
-                    <DotIcon />
-                  </>
-                )}
-              </h2>
-              {renderMenuItems(auth === "ENGINEER" ? navItems : devOpsItem, "main")}
-            </div>
-            {
-              auth === "ENGINEER"
-                ? (
-                  <div className="">
-                    <h2
-                      className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                        !isExpanded && !isHovered
-                          ? "lg:justify-center"
-                          : "justify-start"
-                      }`}
-                    >
-                      {isExpanded || isHovered || isMobileOpen ? (
-                        "Create"
-                      ): (
-                        <>
-                          <DotIcon />
-                          <DotIcon />
-                          <DotIcon />
-                        </>
-                      )}
-                    </h2>
-                    {renderMenuItems(createItems, "created")}
+      <div className="mb-3">
+        <button
+          onClick={() => setShowModal(true)}
+          className="w-full flex items-center justify-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--text)] text-sm py-2 hover:border-[var(--color-brand-500)]"
+          title="New Connection"
+        >
+          <Plus size={16} /> {!isCollapsed && "New Connection"}
+        </button>
+      </div>
+      <div className="custom-scrollbar pr-1" style={{ maxHeight: "calc(100vh - 120px)" }}>
+        <ul className="space-y-1">
+          {connections.map((item) => {
+            const isOpen = expanded[item._id];
+            const isLoading = loadingCatalog[item._id];
+            const dbList = catalogs[item._id];
+
+            return (
+              <li key={item._id}>
+                <button
+                  onClick={() => toggleExpand(item)}
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm ${
+                    active === item._id
+                      ? "bg-[var(--surface-subtle)] text-[var(--text)]"
+                      : "text-[var(--text-muted)] hover:bg-[var(--surface-subtle)]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {!isCollapsed && (
+                      <span className="text-[var(--text-muted)] shrink-0">
+                        {isLoading ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : isOpen ? (
+                          <ChevronDown size={14} />
+                        ) : (
+                          <ChevronRight size={14} />
+                        )}
+                      </span>
+                    )}
+                    <span className="text-[var(--text-muted)] shrink-0">
+                      {renderIcon(item.icon, 16)}
+                    </span>
+                    {!isCollapsed && <span className="truncate">{item.name}</span>}
                   </div>
-                )
-                : null
-            }
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Report"
-                ): (
-                  <>
-                    <DotIcon />
-                    <DotIcon />
-                    <DotIcon />
-                  </>
+                </button>
+
+                {!isCollapsed && isOpen && dbList && (
+                  <ul className="ml-5 mt-1 space-y-0.5 border-l border-[var(--border)] pl-3">
+                    {dbList.length === 0 ? (
+                      <li className="text-xs text-[var(--text-muted)] italic py-1">No databases</li>
+                    ) : (
+                      dbList.map((db) => (
+                        <li key={db.name}>
+                          <button
+                            onClick={() => selectDatabase(item._id, item.name, db.name)}
+                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors ${
+                              selected?.connectionId === item._id && selected?.dbName === db.name
+                                ? "bg-[var(--color-brand-500)]/10 text-[var(--color-brand-600)]"
+                                : "text-[var(--text-muted)] hover:bg-[var(--surface-subtle)]"
+                            }`}
+                          >
+                            <Database size={13} className="shrink-0 opacity-60" />
+                            <span className="truncate text-left">{db.name}</span>
+                            {db.sizeOnDisk != null && (
+                              <span className="ml-auto text-[10px] opacity-50 shrink-0">
+                                {formatSize(db.sizeOnDisk)}
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      ))
+                    )}
+                  </ul>
                 )}
-              </h2>
-              {renderMenuItems(reportItems, "report")}
-            </div>
-          </div>
-        </nav>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </aside>
+    {showModal && (
+      <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 shadow-xl">
+            <h3 className="text-lg font-semibold mb-4 text-[var(--text)]">New Connection</h3>
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div className="space-y-1">
+                <label className="text-sm text-[var(--text-muted)]">Name</label>
+                <input
+                  className="w-full rounded-md border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--text)]"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  required
+                />
+              </div>
+            <div className="space-y-1">
+              <label className="text-sm text-[var(--text-muted)]">URI</label>
+              <div className="flex gap-2">
+                <input
+                  className="w-full rounded-md border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--text)]"
+                  value={form.uri}
+                  onChange={(e) => setForm({ ...form, uri: e.target.value })}
+                  placeholder="mongodb+srv://user:pass@host/db"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleTest}
+                  className="shrink-0 px-3 py-2 rounded-md border border-[var(--color-brand-500)] text-sm text-[var(--color-brand-500)] hover:bg-[var(--surface-subtle)]"
+                  disabled={testing}
+                >
+                  {testing ? "Testing..." : "Test"}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-[var(--text-muted)]">Icon</label>
+              <div className="relative">
+                <select
+                  className="w-full rounded-md border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--text)] appearance-none pr-10"
+                  value={form.icon}
+                  onChange={(e) => setForm({ ...form, icon: e.target.value })}
+                >
+                  {iconOptions.map((opt) => (
+                    <option key={opt.key} value={opt.key}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-[var(--text-muted)]">
+                  {renderIcon(form.icon, 16)}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-3 py-2 rounded-md border border-[var(--border)] text-sm text-[var(--text-muted)] hover:bg-[var(--surface-subtle)]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-3 py-2 rounded-md bg-[var(--color-brand-600)] text-white text-sm hover:bg-[var(--color-brand-500)]"
+              >
+                Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )
+    }
+    </>
   );
 };
 
