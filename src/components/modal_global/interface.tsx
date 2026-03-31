@@ -1,4 +1,4 @@
-import { FormStateRedux } from "../../redux/form/interface";
+import type { FormStateRedux } from "../../redux/form/interface";
 
 export interface ModalGlobalInterFace {
     children: React.ReactNode;
