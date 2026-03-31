@@ -3,7 +3,7 @@ import type { ApiResponse } from './model/response';
 import type { CatalogItem, CollectionItem, CreateDatabasePayload, DatabaseItem } from './model/database_model';
 
 export async function createDatabase(payload: CreateDatabasePayload) {
-  return httpRequest<ApiResponse<{ _id: string }>>('/v1/databases', {
+  return httpRequest<ApiResponse<{ _id: string }>>('/databases', {
     method: 'POST',
     body: payload,
   });
