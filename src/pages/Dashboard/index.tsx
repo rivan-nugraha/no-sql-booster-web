@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { useCallback, useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import {
@@ -696,7 +697,7 @@ function ScriptEditor({
   const [logs, setLogs] = useState<
     Array<{ ts: string; status: 'OK' | 'ERROR'; message: string }>
   >([]);
-  const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
+  const [consoleLogs, setConsoleLogs] = useState<Array<string>>([]);
   const [collections, setCollections] = useState<Array<CollectionItem>>([]);
 
   // Keep latest collections for Monaco completion without re-registering
@@ -727,7 +728,7 @@ function ScriptEditor({
   const fetchScripts = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await listScripts(connectionId, dbName);
+      const res = await listScripts(); // fetch all scripts (global)
       setScripts(res.data ?? []);
     } catch {
       setScripts([]);
@@ -764,8 +765,6 @@ function ScriptEditor({
       } else {
         await createScript({
           name: scriptName,
-          database_id: connectionId,
-          db_name: dbName,
           script: editorValue,
         });
       }
@@ -952,9 +951,8 @@ function ScriptEditor({
                   padding: { top: 12 },
                   quickSuggestions: { other: true, comments: false, strings: true },
                   suggestOnTriggerCharacters: true,
-                  wordBasedSuggestions: false,
                 }}
-                onMount={(editor, monaco) => {
+                onMount={(_editor, monaco) => {
                   // Clean up existing provider if component remounts
                   completionDisposable.current?.dispose();
 
@@ -1286,9 +1284,6 @@ function ScriptEditor({
                       } catch {}
                     },
                   };
-                }}
-                onUnmount={() => {
-                  completionDisposable.current?.dispose();
                 }}
               />
             </div>
