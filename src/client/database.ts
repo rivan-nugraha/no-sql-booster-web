@@ -29,8 +29,36 @@ export async function listCollectionDocuments(
   collectionName: string,
   skip = 0,
   limit = 50,
+  filter?: string,
 ) {
-  return httpRequest<ApiResponse<Array<Record<string, unknown>>>>(
-    `/databases/${encodeURIComponent(id)}/catalog/${encodeURIComponent(dbName)}/collections/${encodeURIComponent(collectionName)}/documents?skip=${skip}&limit=${limit}`
+  let url = `/databases/${encodeURIComponent(id)}/catalog/${encodeURIComponent(dbName)}/collections/${encodeURIComponent(collectionName)}/documents?skip=${skip}&limit=${limit}`;
+  if (filter) {
+    url += `&filter=${encodeURIComponent(filter)}`;
+  }
+  return httpRequest<ApiResponse<Array<Record<string, unknown>>>>(url);
+}
+
+export async function updateCollectionDocument(
+  id: string,
+  dbName: string,
+  collectionName: string,
+  documentId: string,
+  update: Record<string, unknown>,
+) {
+  return httpRequest<ApiResponse<{ modifiedCount: number }>>(
+    `/databases/${encodeURIComponent(id)}/catalog/${encodeURIComponent(dbName)}/collections/${encodeURIComponent(collectionName)}/documents/${encodeURIComponent(documentId)}`,
+    { method: 'PUT', body: update },
+  );
+}
+
+export async function runDatabaseScript(
+  id: string,
+  dbName: string,
+  script: string,
+  limit?: number,
+) {
+  return httpRequest<ApiResponse<unknown>>(
+    `/databases/${encodeURIComponent(id)}/catalog/${encodeURIComponent(dbName)}/run`,
+    { method: 'POST', body: { script, limit } },
   );
 }

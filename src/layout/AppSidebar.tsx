@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
  
 import { useEffect, useState } from "react";
 import {
@@ -60,9 +61,9 @@ const AppSidebar: React.FC = () => {
   const { selected, selectDatabase } = useDatabase();
   const [showModal, setShowModal] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [connections, setConnections] = useState<DatabaseItem[]>([]);
+  const [connections, setConnections] = useState<Array<DatabaseItem>>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [catalogs, setCatalogs] = useState<Record<string, CatalogItem[]>>({});
+  const [catalogs, setCatalogs] = useState<Record<string, Array<CatalogItem>>>({});
   const [loadingCatalog, setLoadingCatalog] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<CreateDatabasePayload>({
     name: "",
@@ -151,6 +152,7 @@ const AppSidebar: React.FC = () => {
     <>
     <aside
       className={`fixed mt-16 lg:mt-0 top-0 left-0 h-screen border-r border-[var(--border)] sidebar-bg text-[var(--text)] transition-all duration-300 ease-in-out z-[40] px-3 pt-6
+        overflow-y-scroll
         ${
           isExpanded || isMobileOpen
             ? "w-[280px]"
